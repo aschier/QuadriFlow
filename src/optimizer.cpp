@@ -1,4 +1,4 @@
-#include "optimizer.hpp"
+#include "quadriflow/optimizer.hpp"
 
 #include <Eigen/Sparse>
 #include <cmath>
@@ -8,10 +8,10 @@
 #include <queue>
 #include <unordered_map>
 
-#include "config.hpp"
-#include "field-math.hpp"
-#include "flow.hpp"
-#include "parametrizer.hpp"
+#include "quadriflow/config.hpp"
+#include "quadriflow/field-math.hpp"
+#include "quadriflow/flow.hpp"
+#include "quadriflow/parametrizer.hpp"
 
 #ifdef WITH_CUDA
 #    include <cuda_runtime.h>

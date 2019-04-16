@@ -1,13 +1,13 @@
-#include "parametrizer.hpp"
-#include "config.hpp"
-#include "dedge.hpp"
-#include "field-math.hpp"
-#include "flow.hpp"
-#include "localsat.hpp"
-#include "optimizer.hpp"
-#include "subdivide.hpp"
+#include "quadriflow/parametrizer.hpp"
+#include "quadriflow/config.hpp"
+#include "quadriflow/dedge.hpp"
+#include "quadriflow/field-math.hpp"
+#include "quadriflow/flow.hpp"
+#include "quadriflow/localsat.hpp"
+#include "quadriflow/optimizer.hpp"
+#include "quadriflow/subdivide.hpp"
 
-#include "dset.hpp"
+#include "quadriflow/dset.hpp"
 
 #include <Eigen/Sparse>
 #include <fstream>
@@ -25,9 +25,9 @@ void Parametrizer::ComputeIndexMap(int with_scale) {
     auto& O = hierarchy.mO[0];
     auto& S = hierarchy.mS[0];
     // ComputeOrientationSingularities();
-    
+
     BuildEdgeInfo();
-    
+
     if (flag_preserve_sharp) {
         //        ComputeSharpO();
     }
@@ -101,7 +101,7 @@ void Parametrizer::ComputeIndexMap(int with_scale) {
                        edge_diff, edge_values, face_edgeOrients, face_edgeIds, sharp_edges,
                        singularities, 1);
     FixFlipSat();
-    
+
 #ifdef LOG_OUTPUT
     int t2 = GetCurrentTime64();
     printf("Flip use %lf\n", (t2 - t1) * 1e-3);
@@ -122,7 +122,7 @@ void Parametrizer::ComputeIndexMap(int with_scale) {
                                         sharp_constraints, flag_adaptive_scale);
 
     AdvancedExtractQuad();
-    
+
     FixValence();
 
     std::vector<int> sharp_o(O_compact.size(), 0);

@@ -1,6 +1,6 @@
-#include "config.hpp"
-#include "adjacent-matrix.hpp"
-#include "dedge.hpp"
+#include "quadriflow/config.hpp"
+#include "quadriflow/adjacent-matrix.hpp"
+#include "quadriflow/dedge.hpp"
 #include <fstream>
 void generate_adjacency_matrix_uniform(
 	const MatrixXi &F, const VectorXi &V2E, const VectorXi &E2E,

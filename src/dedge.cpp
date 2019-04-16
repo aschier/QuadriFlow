@@ -1,12 +1,12 @@
-#include "dedge.hpp"
-#include "config.hpp"
+#include "quadriflow/dedge.hpp"
+#include "quadriflow/config.hpp"
 
 #include <atomic>
 #include <fstream>
 #include <iostream>
 #include <set>
 #include <vector>
-#include "compare-key.hpp"
+#include "quadriflow/compare-key.hpp"
 #ifdef WITH_TBB
 #include "tbb_common.h"
 #endif

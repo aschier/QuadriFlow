@@ -1,11 +1,11 @@
-#include "hierarchy.hpp"
+#include "quadriflow/hierarchy.hpp"
 #include <fstream>
 #include <algorithm>
 #include <unordered_map>
-#include "config.hpp"
-#include "field-math.hpp"
+#include "quadriflow/config.hpp"
+#include "quadriflow/field-math.hpp"
 #include <queue>
-#include "localsat.hpp"
+#include "quadriflow/localsat.hpp"
 #include "pcg32/pcg32.h"
 #ifdef WITH_TBB
 #  include "tbb_common.h"

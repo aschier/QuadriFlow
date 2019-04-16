@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.1)
 project(QuadriFlow LANGUAGES CXX)
 
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+set(CMAKE_DEBUG_POSTFIX "-debug")
+include(CMakePackageConfigHelpers)
+
 option(BUILD_PERFORMANCE_TEST "More subdivisition for performance test" OFF)
 option(BUILD_LOG "Enable verbose log" OFF)
 option(BUILD_GUROBI "Enable GUROBI for comparison ONLY" OFF)
@@ -41,6 +46,7 @@ else()
     find_package(LEMON QUIET NO_MODULE)
     find_package(LEMON REQUIRED)
 endif()
+set_target_properties(lemon PROPERTIES FOLDER "libraries")
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_CXX_STANDARD 14)
@@ -95,50 +101,63 @@ if (BUILD_FREE_LICENSE)
     add_definitions(-DEIGEN_MPL2_ONLY)
 endif(BUILD_FREE_LICENSE)
 
-
-set(
-    quadriflow_SRC
+add_library(libQuadriflow STATIC
     src/adjacent-matrix.cpp
-    src/adjacent-matrix.hpp
-    src/compare-key.hpp
-    src/config.hpp
+    include/quadriflow/adjacent-matrix.hpp
+    include/quadriflow/compare-key.hpp
+    include/quadriflow/config.hpp
     src/dedge.cpp
-    src/dedge.hpp
-    src/disajoint-tree.hpp
-    src/dset.hpp
-    src/field-math.hpp
-    src/flow.hpp
+    include/quadriflow/dedge.hpp
+    include/quadriflow/disajoint-tree.hpp
+    include/quadriflow/dset.hpp
+    include/quadriflow/field-math.hpp
+    include/quadriflow/flow.hpp
     src/hierarchy.cpp
-    src/hierarchy.hpp
+    include/quadriflow/hierarchy.hpp
     src/loader.cpp
-    src/loader.hpp
+    include/quadriflow/loader.hpp
     src/localsat.cpp
-    src/localsat.hpp
+    include/quadriflow/localsat.hpp
     src/main.cpp
     src/merge-vertex.cpp
-    src/merge-vertex.hpp
+    include/quadriflow/merge-vertex.hpp
     src/optimizer.cpp
-    src/optimizer.hpp
+    include/quadriflow/optimizer.hpp
     src/parametrizer.cpp
     src/parametrizer-flip.cpp
     src/parametrizer-int.cpp
     src/parametrizer-mesh.cpp
     src/parametrizer-scale.cpp
     src/parametrizer-sing.cpp
-    src/parametrizer.hpp
-    src/serialize.hpp
+    include/quadriflow/parametrizer.hpp
+    include/quadriflow/serialize.hpp
     src/subdivide.cpp
-    src/subdivide.hpp
+    include/quadriflow/subdivide.hpp
 )
-
-add_executable(
-    quadriflow
-    ${quadriflow_SRC}
-)
-
 target_link_libraries(
-    quadriflow
+    libQuadriflow
     ${TBB_LIBRARIES}
     ${LEMON_LIBRARIES}
     ${GUROBI_LIBRARIES}
 )
+target_include_directories(libQuadriflow PUBLIC
+    $<INSTALL_INTERFACE:include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+)
+set_target_properties(libQuadriflow PROPERTIES FOLDER "libraries")
+
+add_executable(
+    quadriflow
+    src/main.cpp
+)
+target_link_libraries(quadriflow libQuadriflow)
+set_target_properties(quadriflow PROPERTIES FOLDER "programs")
+
+
+configure_package_config_file(quadriflowConfig.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/quadriflowConfig.cmake INSTALL_DESTINATION ${CMAKE_INSTALL_PREFIX})
+install(TARGETS libQuadriflow lemon EXPORT quadriflow-targets LIBRARY DESTINATION lib ARCHIVE DESTINATION lib RUNTIME DESTINATION bin)
+install(TARGETS quadriflow LIBRARY DESTINATION lib ARCHIVE DESTINATION lib RUNTIME DESTINATION bin)
+
+install(EXPORT quadriflow-targets FILE quadriflowTargets.cmake DESTINATION ${CMAKE_INSTALL_PREFIX})
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/quadriflowConfig.cmake DESTINATION ${CMAKE_INSTALL_PREFIX})
+install(DIRECTORY include/ DESTINATION include FILES_MATCHING PATTERN "*.hpp")

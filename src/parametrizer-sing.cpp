@@ -1,6 +1,7 @@
-#include "config.hpp"
-#include "field-math.hpp"
-#include "parametrizer.hpp"
+#include "quadriflow/config.hpp"
+#include "quadriflow/field-math.hpp"
+#include "quadriflow/parametrizer.hpp"
+
 void Parametrizer::ComputeOrientationSingularities() {
     MatrixXd &N = hierarchy.mN[0], &Q = hierarchy.mQ[0];
     const MatrixXi& F = hierarchy.mF;

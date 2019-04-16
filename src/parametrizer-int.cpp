@@ -1,9 +1,9 @@
-#include "parametrizer.hpp"
+#include "quadriflow/parametrizer.hpp"
 
 #include <queue>
 #include <unordered_map>
 #include <vector>
-#include "optimizer.hpp"
+#include "quadriflow/optimizer.hpp"
 
 void Parametrizer::BuildEdgeInfo() {
     auto& F = hierarchy.mF;

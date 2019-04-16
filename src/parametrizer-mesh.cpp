@@ -1,11 +1,11 @@
-#include "config.hpp"
-#include "dedge.hpp"
-#include "field-math.hpp"
-#include "loader.hpp"
-#include "merge-vertex.hpp"
-#include "parametrizer.hpp"
-#include "subdivide.hpp"
-#include "dedge.hpp"
+#include "quadriflow/config.hpp"
+#include "quadriflow/dedge.hpp"
+#include "quadriflow/field-math.hpp"
+#include "quadriflow/loader.hpp"
+#include "quadriflow/merge-vertex.hpp"
+#include "quadriflow/parametrizer.hpp"
+#include "quadriflow/subdivide.hpp"
+#include "quadriflow/dedge.hpp"
 #include <queue>
 
 void Parametrizer::Load(const char* filename) {
@@ -72,7 +72,7 @@ void Parametrizer::Initialize(int faces) {
             ;
         subdivide(F, V, rho, V2E, E2E, boundary, nonManifold, target_len);
     }
-    
+
     int t1 = GetCurrentTime64();
     while (!compute_direct_graph(V, F, V2E, E2E, boundary, nonManifold))
         ;
@@ -91,10 +91,10 @@ void Parametrizer::Initialize(int faces) {
     ComputeSharpEdges();
     ComputeSmoothNormal();
     ComputeVertexArea();
-    
+
     if (flag_adaptive_scale)
         ComputeInverseAffine();
-    
+
 #ifdef LOG_OUTPUT
     printf("V: %d F: %d\n", (int)V.cols(), (int)F.cols());
 #endif
@@ -213,7 +213,7 @@ void Parametrizer::ComputeSharpO() {
             sharp_edges[E2E[i * 3 + j]] = 1;
         }
     }
-    
+
 }
 
 void Parametrizer::ComputeSmoothNormal() {
@@ -233,7 +233,7 @@ void Parametrizer::ComputeSmoothNormal() {
         }
         Nf.col(f) = n;
     }
-    
+
     N.resize(3, V.cols());
 #ifdef WITH_OMP
 #pragma omp parallel for
@@ -244,8 +244,8 @@ void Parametrizer::ComputeSmoothNormal() {
             N.col(i) = Vector3d::UnitX();
             continue;
         }
-        
-        
+
+
         int stop = edge;
         do {
             if (sharp_edges[edge])
@@ -261,18 +261,18 @@ void Parametrizer::ComputeSmoothNormal() {
         Vector3d normal = Vector3d::Zero();
         do {
             int idx = edge % 3;
-            
+
             Vector3d d0 = V.col(F((idx + 1) % 3, edge / 3)) - V.col(i);
             Vector3d d1 = V.col(F((idx + 2) % 3, edge / 3)) - V.col(i);
             double angle = fast_acos(d0.dot(d1) / std::sqrt(d0.squaredNorm() * d1.squaredNorm()));
-            
+
             /* "Computing Vertex Normals from Polygonal Facets"
              by Grit Thuermer and Charles A. Wuethrich, JGT 1998, Vol 3 */
             if (std::isfinite(angle)) normal += Nf.col(edge / 3) * angle;
-            
+
             int opp = E2E[edge];
             if (opp == -1) break;
-            
+
             edge = dedge_next_3(opp);
             if (sharp_edges[edge])
                 break;
@@ -285,7 +285,7 @@ void Parametrizer::ComputeSmoothNormal() {
 void Parametrizer::ComputeVertexArea() {
     A.resize(V.cols());
     A.setZero();
-    
+
 #ifdef WITH_OMP
 #pragma omp parallel for
 #endif
@@ -295,23 +295,23 @@ void Parametrizer::ComputeVertexArea() {
         double vertex_area = 0;
         do {
             int ep = dedge_prev_3(edge), en = dedge_next_3(edge);
-            
+
             Vector3d v = V.col(F(edge % 3, edge / 3));
             Vector3d vn = V.col(F(en % 3, en / 3));
             Vector3d vp = V.col(F(ep % 3, ep / 3));
-            
+
             Vector3d face_center = (v + vp + vn) * (1.0f / 3.0f);
             Vector3d prev = (v + vp) * 0.5f;
             Vector3d next = (v + vn) * 0.5f;
-            
+
             vertex_area += 0.5f * ((v - prev).cross(v - face_center).norm() +
                                    (v - next).cross(v - face_center).norm());
-            
+
             int opp = E2E[edge];
             if (opp == -1) break;
             edge = dedge_next_3(opp);
         } while (edge != stop);
-        
+
         A[i] = vertex_area;
     }
 }
@@ -414,7 +414,7 @@ void Parametrizer::FixValence()
     }
     compute_direct_graph_quad(O_compact, F_compact, V2E_compact, E2E_compact, boundary_compact,
                               nonManifold_compact);
-    
+
     // Decrease Valence
     while (true) {
         bool update = false;

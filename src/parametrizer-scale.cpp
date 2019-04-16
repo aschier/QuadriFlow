@@ -1,4 +1,4 @@
-#include "parametrizer.hpp"
+#include "quadriflow/parametrizer.hpp"
 
 void Parametrizer::ComputeInverseAffine()
 {
@@ -37,7 +37,7 @@ void Parametrizer::EstimateSlope() {
         Vector3d q_1n = rotate_vector_into_plane(q_1, n_1, n);
         Vector3d q_2n = rotate_vector_into_plane(q_2, n_2, n);
         Vector3d q_3n = rotate_vector_into_plane(q_3, n_3, n);
-        
+
         auto p = compat_orientation_extrinsic_4(q_1n, n, q_2n, n);
         Vector3d q = (p.first + p.second).normalized();
         p = compat_orientation_extrinsic_4(q, n, q_3n, n);
@@ -47,7 +47,7 @@ void Parametrizer::EstimateSlope() {
     }
     for (int i = 0; i < mF.cols(); ++i) {
         double step = hierarchy.mScale * 1.f;
-        
+
         const Vector3d &n = Nf.col(i);
         Vector3d p = (mV.col(mF(0, i)) + mV.col(mF(1, i)) + mV.col(mF(2, i))) * (1.0 / 3.0);
         Vector3d q_x = FQ.col(i), q_y = n.cross(q_x);
@@ -56,23 +56,23 @@ void Parametrizer::EstimateSlope() {
         Vector3d q_yl_unfold = q_y, q_yr_unfold = q_y, q_xl_unfold = q_x, q_xr_unfold = q_x;
         int f;
         double tx, ty, len;
-        
+
         f = i; len = step;
         TravelField(p, q_xl, len, f, hierarchy.mE2E, mV, mF, Nf, FQ, mQ, mN, triangle_space, &tx, &ty, &q_yl_unfold);
-        
+
         f = i; len = step;
         TravelField(p, q_xr, len, f, hierarchy.mE2E, mV, mF, Nf, FQ, mQ, mN, triangle_space, &tx, &ty, &q_yr_unfold);
-        
+
         f = i; len = step;
         TravelField(p, q_yl, len, f, hierarchy.mE2E, mV, mF, Nf, FQ, mQ, mN, triangle_space, &tx, &ty, &q_xl_unfold);
-        
+
         f = i; len = step;
         TravelField(p, q_yr, len, f, hierarchy.mE2E, mV, mF, Nf, FQ, mQ, mN, triangle_space, &tx, &ty, &q_xr_unfold);
         double dSx = (q_yr_unfold - q_yl_unfold).dot(q_x) / (2.0f * step);
         double dSy = (q_xr_unfold - q_xl_unfold).dot(q_y) / (2.0f * step);
         FS.col(i) = Vector2d(dSx, dSy);
     }
-    
+
     std::vector<double> areas(mV.cols(), 0.0);
     for (int i = 0; i < mF.cols(); ++i) {
         Vector3d p1 = mV.col(mF(1, i)) - mV.col(mF(0, i));
@@ -103,12 +103,12 @@ void Parametrizer::EstimateSlope() {
         for (int i = 0; i < toUpper.cols(); ++i) {
             Vector2i upper = toUpper.col(i);
             Vector2d k0 = K.col(upper[0]);
-            
+
             if (upper[1] != -1) {
                 Vector2d k1 = K.col(upper[1]);
                 k0 = 0.5 * (k0 + k1);
             }
-            
+
             K_next.col(i) = k0;
         }
     }

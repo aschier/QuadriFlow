@@ -6,7 +6,7 @@
 //  Copyright © 2017 Jingwei. All rights reserved.
 //
 
-#include "loader.hpp"
+#include "quadriflow/loader.hpp"
 
 #include <fstream>
 #include <unordered_map>
