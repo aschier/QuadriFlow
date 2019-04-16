@@ -8,8 +8,15 @@
 #include "quadriflow/dedge.hpp"
 #include <queue>
 
-void Parametrizer::Load(const char* filename) {
-    load(filename, V, F);
+Parametrizer::Parametrizer(const MatrixXd& V, const MatrixXi& F, const bool normalize) {
+    this->V = V;
+    this->F = F;
+    if (normalize) {
+        NormalizeMesh();
+    }
+}
+
+void Parametrizer::NormalizeMesh() {
     double maxV[3] = {-1e30, -1e30, -1e30};
     double minV[3] = {1e30, 1e30, 1e30};
 #ifdef WITH_OMP
@@ -38,6 +45,11 @@ void Parametrizer::Load(const char* filename) {
     this->normalize_scale = scale;
     this->normalize_offset = Vector3d(0.5 * (maxV[0] + minV[0]), 0.5 * (maxV[1] + minV[1]), 0.5 * (maxV[2] + minV[2]));
     //    merge_close(V, F, 1e-6);
+}
+
+void Parametrizer::Load(const char* filename) {
+    load(filename, V, F);
+    NormalizeMesh();
 }
 
 void Parametrizer::Initialize(int faces) {

@@ -35,7 +35,9 @@ struct ExpandInfo {
 class Parametrizer {
    public:
     Parametrizer() {}
+    Parametrizer(const MatrixXd& V, const MatrixXi& F, bool normalize = true);
     // Mesh Initialization
+    void NormalizeMesh();
     void Load(const char* filename);
     void ComputeMeshStatus();
     void ComputeSmoothNormal();
