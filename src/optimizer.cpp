@@ -658,22 +658,28 @@ void Optimizer::optimize_positions_dynamic(
         //        solver.setMaxIterations(40);
 
         //        solver.compute(A);
-        VectorXd x_new = solver.solve(rhs);  // solver.solveWithGuess(rhs, x0);
+        VectorXd x_new;
+        if (solver.info() == Eigen::ComputationInfo::Success) {
+            x_new = solver.solve(rhs);  // solver.solveWithGuess(rhs, x0);
 
 #ifdef LOG_OUTPUT
         // std::cout << "[LSQ] n_iteration:" << solver.iterations() << std::endl;
         // std::cout << "[LSQ] estimated error:" << solver.error() << std::endl;
-        int t2 = GetCurrentTime64();
-        printf("[LSQ] Linear solver uses %lf seconds.\n", (t2 - t1) * 1e-3);
+            int t2 = GetCurrentTime64();
+            printf("[LSQ] Linear solver uses %lf seconds.\n", (t2 - t1) * 1e-3);
 #endif
-        for (int i = 0; i < O_compact.size(); ++i) {
-            // Vector3d q = Q.col(Vind[i]);
-            Vector3d q = Q_compact[i];
-            // Vector3d n = N.col(Vind[i]);
-            Vector3d n = N_compact[i];
-            Vector3d q_y = n.cross(q);
-            auto Vi = V_compact[i];
-            O_compact[i] = Vi + q * x_new[i * 2] + q_y * x_new[i * 2 + 1];
+            for (int i = 0; i < O_compact.size(); ++i) {
+                // Vector3d q = Q.col(Vind[i]);
+                Vector3d q = Q_compact[i];
+                // Vector3d n = N.col(Vind[i]);
+                Vector3d n = N_compact[i];
+                Vector3d q_y = n.cross(q);
+                auto Vi = V_compact[i];
+                O_compact[i] = Vi + q * x_new[i * 2] + q_y * x_new[i * 2 + 1];
+            }
+        } else {
+            std::cerr << "Error factorizing the matrix:" << solver.lastErrorMessage() << "." << std::endl;
+            std::cerr << "Continuing using unoptimized vertex positions." << std::endl;
         }
 
         // forgive my hack...
@@ -1146,28 +1152,34 @@ void Optimizer::optimize_positions_fixed(
     LinearSolver<Eigen::SparseMatrix<double>> solver;
     solver.analyzePattern(A);
     solver.factorize(A);
+    VectorXd x_new;
+    if (solver.info() == Eigen::ComputationInfo::Success) {
+        x_new = solver.solve(rhs);
 
-    VectorXd x_new = solver.solve(rhs);
 #ifdef LOG_OUTPUT
-    // std::cout << "[LSQ] n_iteration:" << solver.iterations() << std::endl;
-    // std::cout << "[LSQ] estimated error:" << solver.error() << std::endl;
-    int t2 = GetCurrentTime64();
-    printf("[LSQ] Linear solver uses %lf seconds.\n", (t2 - t1) * 1e-3);
+        // std::cout << "[LSQ] n_iteration:" << solver.iterations() << std::endl;
+        // std::cout << "[LSQ] estimated error:" << solver.error() << std::endl;
+        int t2 = GetCurrentTime64();
+        printf("[LSQ] Linear solver uses %lf seconds.\n", (t2 - t1) * 1e-3);
 #endif
 
-    for (int i = 0; i < x.size(); ++i) {
-        if (!std::isnan(x_new[i])) {
-            if (!fixed_dim[i / 2 * 2 + 1]) {
-                double total = 0;
-                for (auto& res : entries[i]) {
-                    double t = x_new[res.first];
-                    if (std::isnan(t)) t = 0;
-                    total += t * res.second;
+        for (int i = 0; i < x.size(); ++i) {
+            if (!std::isnan(x_new[i])) {
+                if (!fixed_dim[i / 2 * 2 + 1]) {
+                    double total = 0;
+                    for (auto& res : entries[i]) {
+                        double t = x_new[res.first];
+                        if (std::isnan(t)) t = 0;
+                        total += t * res.second;
+                    }
                 }
+                x[i] = x_new[i];
             }
-            x[i] = x_new[i];
-        }
     }
+} else {
+    std::cerr << "Error factorizing the matrix:" << solver.lastErrorMessage() << "." << std::endl;
+    std::cerr << "Continuing using unoptimized vertex positions." << std::endl;
+}
 
     for (int i = 0; i < O.cols(); ++i) {
         int p = tree.Index(i);
